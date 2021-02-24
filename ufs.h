@@ -4,6 +4,11 @@
 #include <string.h>
 #include <errno.h>
 
+// FUSE API版本
+// Ubuntu下安装：sudo apt install libfuse2 libfuse-dev
+#define FUSE_USE_VERSION 26
+#include <fuse.h>
+
 // 每块的大小为512个字节
 #define BLOCK_SIZE 512
 // 块中数据的最大容量
