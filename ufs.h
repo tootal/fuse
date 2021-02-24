@@ -9,6 +9,9 @@
 #define FUSE_USE_VERSION 26
 #include <fuse.h>
 
+// 磁盘文件名
+#define DISK_NAME "diskimg"
+
 // 每块的大小为512个字节
 #define BLOCK_SIZE 512
 // 块中数据的最大容量
@@ -28,8 +31,19 @@
 // 扩展名的最大长度
 #define MAX_EXTENSION 3
 
+// 块，保存在单个、预分配大小的diskimg文件中。
+// 每块的大小为512个字节。
+struct block {
+    // 已使用的字节数
+    size_t size;
+    // 下一块的位置，-1表示没有下一块
+    long nNextBlock;
+    // 剩余空间存储数据
+    char data[MAX_DATA_IN_BLOCK];
+};
+
 // 超级块，用于描述整个文件系统
-struct super_block{
+struct super_block {
     // 文件系统的大小，单位为块
     long fs_size;
     // 根目录的块编号
@@ -39,7 +53,7 @@ struct super_block{
 };
 
 // 文件，也可表示文件夹
-struct file_directory{
+struct file_directory {
     // 文件名
     char fname[MAX_FILENAME + 1];
     // 扩展名
@@ -51,15 +65,3 @@ struct file_directory{
     // 文件类型，0表示未知，1表示文件，2表示文件夹
     int flag;
 };
-
-// 数据块，保存在单个、预分配大小的diskimg文件中。
-// 每块的大小为512个字节。
-struct data_block{
-    // 已使用的字节数
-    size_t size;
-    // 下一块的位置，-1表示没有下一块
-    long nNextBlock;
-    // 剩余空间存储数据
-    char data[MAX_DATA_IN_BLOCK];
-};
-

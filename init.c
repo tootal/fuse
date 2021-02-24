@@ -35,12 +35,12 @@ void init_bitmap_block(FILE *fp) {
 // 初始化数据块
 void init_data_block(FILE *fp) {
     fseek(fp, BLOCK_SIZE * (SUPER_BLOCK_COUNT + BITMAP_BLOCK_COUNT), SEEK_SET);
-    struct data_block block = {
+    struct block block = {
         .size = 0,
         .nNextBlock = -1
     };
     block.data[0] = '\0';
-    fwrite(&block, sizeof(struct data_block), 1, fp);
+    fwrite(&block, sizeof(struct block), 1, fp);
     puts("data block initialized");
 }
 
