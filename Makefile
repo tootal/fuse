@@ -1,16 +1,16 @@
-all: init_disk MFS
+all: init mount
 
-init_disk: init_disk.o
-	gcc init_disk.o -o init_disk
+init: init.o
+	gcc init.o -o init
 
-MFS: MFS.o
-	gcc MFS.o -o MFS -Wall -D_FILE_OFFSET_BITS=64 -g -pthread -lfuse -lrt -ldl
+mount: mount.o
+	gcc mount.o -o mount -Wall -D_FILE_OFFSET_BITS=64 -g -pthread -lfuse -lrt -ldl
 
-MFS.o: MFS.c ufs.h
-	gcc -Wall -D_FILE_OFFSET_BITS=64 -g -c -o MFS.o MFS.c
+mount.o: mount.c ufs.h
+	gcc -Wall -D_FILE_OFFSET_BITS=64 -g -c -o mount.o mount.c
 
-init_disk.o: init_disk.c ufs.h
-	gcc -Wall -D_FILE_OFFSET_BITS=64 -g -c -o init_disk.o init_disk.c
+init.o: init.c ufs.h
+	gcc -Wall -D_FILE_OFFSET_BITS=64 -g -c -o init.o init.c
 
 clean :
-	rm -f MFS init_disk MFS.o init_disk.o
+	rm -f mount init mount.o init.o

@@ -1,3 +1,4 @@
 *.o
-/init_disk
-/MFS
+/init
+/mount
+/diskimg

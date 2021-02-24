@@ -16,36 +16,60 @@
 
 #define DISK_PATH "/home/tootal/fuse/diskimg"
 
-#define FS_BLOCK_SIZE 512
-
-#define SUPER_BLOCK 1
-#define BITMAP_BLOCK 1280
-#define ROOT_DIR_BLOCK 1
-
-#define MAX_DATA_IN_BLOCK 504 //size_t和long nNextBlock各占4byte
+// 每块大小为512字节
+#define BLOCK_SIZE 512
+// 块的总数量
+#define BLOCK_COUNT 10240
+// 超级块数量
+#define SUPER_BLOCK_COUNT 1
+// bitmap块数量
+#define BITMAP_BLOCK_COUNT 1280
+// 根目录块数量
+#define ROOT_BLOCK_COUNT 1
+// 初始使用的块的数量
+// 超级块+bitmap块+根目录块
+#define BLOCK_USED (SUPER_BLOCK_COUNT + BITMAP_BLOCK_COUNT + ROOT_BLOCK_COUNT)
+// 数据块中数据长度
+// size_t和long nNextBlock各占4byte
+#define MAX_DATA_IN_BLOCK (BLOCK_SIZE - 8)
+// 最大文件夹数量
 #define MAX_DIR_IN_BLOCK 8
+// 文件名最大长度
 #define MAX_FILENAME 8
+// 扩展名最大长度
 #define MAX_EXTENSION 3
 
-//超级块中记录的，大小为 24 bytes（3个long），占用1块磁盘块
-struct super_block {
-    long fs_size; //size of file system, in blocks（以块为单位）
-    long first_blk; //first block of root directory（根目录的起始块位置，以块为单位）
-    long bitmap; //size of bitmap, in blocks（以块为单位）
+// 超级块，用于描述整个文件系统
+struct super_block{
+    // 文件系统的大小，单位为块
+    long fs_size;
+    // 根目录的块编号
+    long first_blk;
+    // bitmap的大小，单位为块
+    long bitmap;
 };
 
-//记录文件信息的数据结构,统一存放在目录文件里面，也就是说目录文件里面存的全部都是这个结构，大小为 64 bytes，占用1块磁盘块
-struct file_directory {
-    char fname[MAX_FILENAME + 1]; //文件名 (plus space for nul)
-    char fext[MAX_EXTENSION + 1]; //扩展名 (plus space for nul)
-    size_t fsize; //文件大小（file size）
-    long nStartBlock; //目录开始块位置（where the first block is on disk）
-    int flag; //indicate type of file. 0:for unused; 1:for file; 2:for directory
+// 文件，也可表示文件夹
+struct file_directory{
+    // 文件名
+    char fname[MAX_FILENAME + 1];
+    // 扩展名
+    char fext[MAX_EXTENSION + 1];
+    // 文件大小
+    size_t fsize;
+    // 起始块位置
+    long nStartBlock;
+    // 文件类型，0表示未知，1表示文件，2表示文件夹
+    int flag;
 };
 
-//文件内容存放用到的数据结构，大小为 512 bytes，占用1块磁盘块
-struct data_block {
-    size_t size; //文件的数据部分使用了这个块里面的多少Bytes
-    long nNextBlock; //（该文件太大了，一块装不下，所以要有下一块的地址）   long的大小为4Byte
-    char data[MAX_DATA_IN_BLOCK];// And all the rest of the space in the block can be used for actual data storage.
+// 数据块，保存在单个、预分配大小的diskimg文件中。
+// 每块的大小为512个字节。
+struct data_block{
+    // 已使用的字节数
+    size_t size;
+    // 下一块的位置，-1表示没有下一块
+    long nNextBlock;
+    // 剩余空间存储数据
+    char data[MAX_DATA_IN_BLOCK];
 };
