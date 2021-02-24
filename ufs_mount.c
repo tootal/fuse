@@ -1,5 +1,4 @@
 #include "ufs.h"
-#include "ufs_func.h"
 #include "ufs_helper.h"
 
 //该函数用于读取文件属性（通过对象的路径获取文件的属性，并赋值给stbuf）
