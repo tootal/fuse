@@ -1,4 +1,6 @@
 *.o
-/init
-/mount
+/ufs_init
+/ufs_mount
 /diskimg
+
+/.vscode

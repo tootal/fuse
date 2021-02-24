@@ -1,3 +1,6 @@
+#ifndef _UFS_H_
+#define _UFS_H_
+
 #include <time.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -73,3 +76,5 @@ struct data_block{
     // 剩余空间存储数据
     char data[MAX_DATA_IN_BLOCK];
 };
+
+#endif

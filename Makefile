@@ -1,16 +1,19 @@
-all: init mount
+all: ufs_init ufs_mount
 
-init: init.o
-	gcc init.o -o init
+ufs_init: ufs_init.o
+	gcc ufs_init.o -o ufs_init
 
-mount: mount.o
-	gcc mount.o -o mount -Wall -D_FILE_OFFSET_BITS=64 -g -pthread -lfuse -lrt -ldl
+ufs_mount: ufs_mount.o ufs_helper.o
+	gcc ufs_mount.o ufs_helper.o -o ufs_mount -Wall -D_FILE_OFFSET_BITS=64 -g -pthread -lfuse -lrt -ldl
 
-mount.o: mount.c ufs.h
-	gcc -Wall -D_FILE_OFFSET_BITS=64 -g -c -o mount.o mount.c
+ufs_mount.o: ufs_mount.c ufs.h
+	gcc -Wall -D_FILE_OFFSET_BITS=64 -g -c -o ufs_mount.o ufs_mount.c
 
-init.o: init.c ufs.h
-	gcc -Wall -D_FILE_OFFSET_BITS=64 -g -c -o init.o init.c
+ufs_init.o: ufs_init.c ufs.h
+	gcc -Wall -D_FILE_OFFSET_BITS=64 -g -c -o ufs_init.o ufs_init.c
+
+ufs_helper.o: ufs_helper.c ufs_helper.h ufs.h
+	gcc -Wall -D_FILE_OFFSET_BITS=64 -g -c -o ufs_helper.o ufs_helper.c
 
 clean :
-	rm -f mount init mount.o init.o
+	rm -f ufs_mount ufs_init *.o
