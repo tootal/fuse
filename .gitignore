@@ -1,0 +1,3 @@
+*.o
+/init_disk
+/MFS

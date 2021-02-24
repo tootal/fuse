@@ -1,54 +1,8 @@
-#define FUSE_USE_VERSION 26
-#include <fuse.h>
+#include "ufs.h"
 
-#include <time.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <stddef.h>
-#include <string.h>
-#include <sys/stat.h>
-#include <sys/types.h>
-#include <errno.h>
-#include <fcntl.h>
-#include <assert.h>
-#include <unistd.h>
-#include <malloc.h>
-
-#define FS_BLOCK_SIZE 512
-#define SUPER_BLOCK 1
-#define BITMAP_BLOCK 1280
-#define ROOT_DIR_BLOCK 1
-#define MAX_DATA_IN_BLOCK 504
-#define MAX_DIR_IN_BLOCK 8
-#define MAX_FILENAME 8
-#define MAX_EXTENSION 3
 long TOTAL_BLOCK_NUM;
 
-//超级块中记录的，大小为 24 bytes（3个long），占用1块磁盘块
-struct super_block {
-    long fs_size; //size of file system, in blocks（以块为单位）
-    long first_blk; //first block of root directory（根目录的起始块位置，以块为单位）
-    long bitmap; //size of bitmap, in blocks（以块为单位）
-};
-
-//记录文件信息的数据结构,统一存放在目录文件里面，也就是说目录文件里面存的全部都是这个结构，大小为 64 bytes，占用1块磁盘块
-struct file_directory {
-    char fname[MAX_FILENAME + 1]; //文件名 (plus space for nul)
-    char fext[MAX_EXTENSION + 1]; //扩展名 (plus space for nul)
-    size_t fsize; //文件大小（file size）
-    long nStartBlock; //目录开始块位置（where the first block is on disk）
-    int flag; //indicate type of file. 0:for unused; 1:for file; 2:for directory
-};
-
-//文件内容存放用到的数据结构，大小为 512 bytes，占用1块磁盘块
-struct data_block {
-    size_t size; //文件使用了这个块里面的多少Bytes
-    long nNextBlock; //（该文件太大了，一块装不下，所以要有下一块的地址）   long的大小为4Byte
-    char data[MAX_DATA_IN_BLOCK];// And all the rest of the space in the block can be used for actual data storage.
-};
-
-//我的5M磁盘文件为:"/home/tootal/fuse/diskimg"
-char *disk_path="/home/tootal/fuse/diskimg";
+char *disk_path=DISK_PATH;
 
 //辅助函数声明
 void read_cpy_file_dir(struct file_directory *a,struct file_directory *b);
@@ -69,39 +23,6 @@ int get_fd_to_attr(const char * path,struct file_directory *attr);
 int create_file_dir(const char* path, int flag);
 int remove_file_dir(const char *path, int flag);
 
-
-/***************************************************************************************************************************/
-
-/*
- * Command line options(定义命令行选项)
- *
- * We can't set default values for the char* fields here because
- * fuse_opt_parse would attempt to free() them when the user specifies
- * different values on the command line.
- *
- * 我们不能在这里设置 char* 字段的默认值，因为当用户在命令行上指定不同的值时，fuse-opt-parse将尝试 free() 字段
- */
-/*
-static struct options {
-	const char *filename;
-	const char *contents;//hello是一个字符型文件，文件内容是字符串
-	int show_help;
-} options;
-
-//offsetof是用来判断结构体中成员的偏移位置,其中第一个参数是type，第二个参数是结构体的成员
-#define OPTION(t, p)                           \
-    { t, offsetof(struct options, p), 1 }
-
-//通过这个结构定义用户在终端可以有什么选项可以使用，这些选项对应什么内容
-static const struct fuse_opt option_spec[] = {
-	OPTION("--name=%s", filename),
-	OPTION("--contents=%s", contents),
-	OPTION("-h", show_help),
-	OPTION("--help", show_help),
-	FUSE_OPT_END
-};*/
-
-/***************************************************************************************************************************/
 
 //下面是一些读写文件的辅助函数：
 
@@ -640,7 +561,7 @@ int get_fd_to_attr(const char * path,struct file_directory *attr)
 		free(sb_blk);return -1;
 	}
 	
-	//如果路径为根目录路径(注意这里的根目录是指/home/tootal/fuse/diskimg/???，/???之前的路径是被忽略的)
+	//如果路径为根目录路径
 	if (strcmp(tmp_path, "/") == 0) 
 	{
 		attr->flag = 2;//2代表路径
@@ -1306,39 +1227,7 @@ static int MFS_readdir(const char *path, void *buf, fuse_fill_dir_t filler,off_t
 	}
 	free(attr);free(data_blk);
 	return 0;
-
-
-	//(void) offset;
-	//(void) fi;
-	//(void) flags;
-
-	//if (strcmp(path, "/") != 0)
-	//	return -ENOENT;
-
-	// fill的定义：
-	//	typedef int (*fuse_fill_dir_t) (void *buf, const char *name, const struct stat *stbuf, off_t off);
-	//	其作用是在readdir函数中增加一个目录项或者文件
-	
-
-	//filler(buf, ".", NULL, 0, 0);
-	//filler(buf, "..", NULL, 0, 0);
-	//filler(buf, options.filename, NULL, 0, 0);
-
-	//return 0;
 }
-
-/*
-//./hello -h会显示出以下内容还有所有的fuse选项的使用说明
-static void show_help(const char *progname)
-{
-	printf("usage: %s [options] <mountpoint>\n\n", progname);
-	printf("File-system specific options:\n"
-	       "    --name=<s>          Name of the \"hello\" file\n"
-	       "                        (default: \"hello\")\n"
-	       "    --contents=<s>      Contents \"hello\" file\n"
-	       "                        (default \"Hello, World!\\n\")\n"
-	       "\n");
-}*/
 
 //所有文件的操作都要放到这里，fuse会帮我们在相应的linux操作中执行这些我们写好的函数
 static struct fuse_operations MFS_oper = {
@@ -1358,39 +1247,7 @@ static struct fuse_operations MFS_oper = {
 	.readdir	= MFS_readdir,//读取目录
 };
 
-
-
 int main(int argc, char *argv[])
 {
-	/*
-	int ret;
-	struct fuse_args args = FUSE_ARGS_INIT(argc, argv);//初始化
-	
-	//设置默认值——我们必须使用strdup，以便fuse-opt-parse可以在用户指定其他值时释放默认值
-	options.filename = strdup("hello");
-	options.contents = strdup("Hello World!\n");
-
-	// Parse options 
-	if (fuse_opt_parse(&args, &options, option_spec, NULL) == -1)//fuse_opt_parse出问题了，直接返回
-		return 1;
-
-	// 当指定--help时，首先打印我们自己的文件系统特定的帮助文本(show_help)，然后信号fuse_main显示附加帮助\
-		（fuse_main再次向选项添加“--help”）而不使用：line（通过将argv[0]设置为空字符串）
-	if (options.show_help) {//如果options里面有 -h
-		show_help(argv[0]);
-		assert(fuse_opt_add_arg(&args, "--help") == 0);//添加--help选项
-		args.argv[0] = (char*) "";
-	}
-
-	ret = fuse_main(args.argc, args.argv, &MFS_oper, NULL);
-	fuse_opt_free_args(&args);
-	return ret;*/
-	umask(0);
 	return fuse_main(argc, argv, &MFS_oper, NULL);
-
 }
-
-/* 
-  通过上述的分析可以知道，使用FUSE必须要自己实现对文件或目录的操作， 系统调用也会最终调用到用户自己实现的函数。
-  用户实现的函数需要在结构体fuse_operations中注册。而在main()函数中，用户只需要调用fuse_main()函数就可以了，剩下的复杂工作可以交给FUSE。
-*/

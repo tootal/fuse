@@ -1,13 +1,16 @@
-all:init_disk MFS
+all: init_disk MFS
+
 init_disk: init_disk.o
 	gcc init_disk.o -o init_disk
+
 MFS: MFS.o
 	gcc MFS.o -o MFS -Wall -D_FILE_OFFSET_BITS=64 -g -pthread -lfuse -lrt -ldl
 
-MFS.o: MFS.c
+MFS.o: MFS.c ufs.h
 	gcc -Wall -D_FILE_OFFSET_BITS=64 -g -c -o MFS.o MFS.c
-init_disk.o: init_disk.c
+
+init_disk.o: init_disk.c ufs.h
 	gcc -Wall -D_FILE_OFFSET_BITS=64 -g -c -o init_disk.o init_disk.c
-.PHONY : all
+
 clean :
 	rm -f MFS init_disk MFS.o init_disk.o
