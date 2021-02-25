@@ -46,8 +46,10 @@
 struct super_block{
     // 文件系统的大小，单位为块
     long fs_size;
+
     // 根目录的块编号
     long first_blk;
+
     // bitmap的大小，单位为块
     long bitmap;
 };
@@ -56,12 +58,16 @@ struct super_block{
 struct file_directory{
     // 文件名
     char fname[MAX_FILENAME + 1];
+
     // 扩展名
     char fext[MAX_EXTENSION + 1];
+
     // 文件大小
     size_t fsize;
+
     // 起始块位置
     long nStartBlock;
+
     // 文件类型，0表示未知，1表示文件，2表示文件夹
     int flag;
 };
@@ -71,8 +77,10 @@ struct file_directory{
 struct data_block{
     // 已使用的字节数
     size_t size;
+
     // 下一块的位置，-1表示没有下一块
     long nNextBlock;
+    
     // 剩余空间存储数据
     char data[MAX_DATA_IN_BLOCK];
 };
