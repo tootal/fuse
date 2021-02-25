@@ -18,9 +18,8 @@ int remove_file_dir(const char *path, int flag);
 // 读取file_directory信息,然后才能找到文件在磁盘的位置，后者的数据复制给前者
 void read_cpy_file_dir(struct file_directory *a, struct file_directory *b);
 
-//根据文件的块号，从磁盘（5M大文件）中读取数据
-//步骤：① 打开文件；② 将FILE指针移动到文件的相应位置；③ 读出数据块
-int read_cpy_data_block(long blk_no, struct data_block *data_blk);
+// 从磁盘文件中读取编号为idx的块
+int read_block(long idx, void *block);
 
 //根据文件的块号，将data_block结构写入到相应的磁盘块里面
 //步骤：① 打开文件；② 将FILE指针移动到文件的相应位置；③写入数据块

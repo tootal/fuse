@@ -94,7 +94,7 @@ static int ufs_read(const char *path, char *buf, size_t size, off_t offset, stru
 
 	struct data_block *data_blk = malloc(sizeof(struct data_block));
 	//根据文件信息读取文件内容
-	if (read_cpy_data_block(attr->nStartBlock, data_blk) == -1)
+	if (read_block(attr->nStartBlock, data_blk) == -1)
 	{
 		free(attr);
 		free(data_blk);
@@ -120,7 +120,7 @@ static int ufs_read(const char *path, char *buf, size_t size, off_t offset, stru
 	//跳过offset之前的block块,找到offset所指的开始位置的块
 	for (i = 0; i < blk_num; i++)
 	{
-		if (read_cpy_data_block(data_blk->nNextBlock, data_blk) == -1 || check_blk == -1)
+		if (read_block(data_blk->nNextBlock, data_blk) == -1 || check_blk == -1)
 		{
 			printf("错误：ufs_read：跳到offset偏移量所在数据块时发生错误，函数结束返回\n\n");
 			free(attr);
@@ -146,7 +146,7 @@ static int ufs_read(const char *path, char *buf, size_t size, off_t offset, stru
 	//把剩余未读完的内容读出来
 	while (temp > 0)
 	{
-		if (read_cpy_data_block(data_blk->nNextBlock, data_blk) == -1)
+		if (read_block(data_blk->nNextBlock, data_blk) == -1)
 			break;					  //读到文件最后一个块就跳出
 		if (temp > MAX_DATA_IN_BLOCK) //如果剩余的数据量仍大于一个块的数据量
 		{
@@ -377,7 +377,7 @@ static int ufs_readdir(const char *path, void *buf, fuse_fill_dir_t filler, off_
 	}
 
 	//如果path所指对象是路径，那么读出该目录的数据块内容
-	if (read_cpy_data_block(start_blk, data_blk))
+	if (read_block(start_blk, data_blk))
 	{
 		free(attr);
 		free(data_blk);
